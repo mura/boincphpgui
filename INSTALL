@@ -1,0 +1,22 @@
+Installation Instructions.
+
+First of all, you must have a web server installed and it must support 
+PHP.  It is beyond the scope of these instructions to tell you how to 
+do this. 
+
+The web server has a directory that it considers the top level of the 
+document tree.  What you need to do is copy the four php files and one 
+css file to a directory somewhere in this tree.  It is suggested you 
+create a directory in this tree just for BoincPHP-GUI and then copy the 
+files to that directory.  
+
+For example, let's say the directory your web server considers the top 
+of the document tree is /home/www/html and you create a directory there 
+called boincphpgui and copy the files to it.  Furthermore, let's say 
+your web server is at http://www.example.com.  You would then go to 
+http://www.example.com/boincphpgui/index.php to access the application.
+
+Please also read the file names SECURITY.  If you don't, it might be 
+possible for someone to access your web server, detach all your project 
+and attach all of their own.  You don't want to be running someone 
+else's workunits, do you?  I didn't think so.

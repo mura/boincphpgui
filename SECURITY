@@ -1,0 +1,49 @@
+Security Considerations.
+
+If you only install the files as described in the installation 
+instructions, it might be possible for someone to access BoincPHP-GUI 
+on your web server, detach your projects and attach their own projects. 
+ The way I suggest you protect against this is to require a user name 
+and password in order to access the application.   (Of course, if your 
+web server is not accessible from the Internet, this may be a moot 
+point.)
+
+I know how to do this on the Apache web server.  I am not familiar with 
+other web servers.  You do this by configuring the web server to look 
+for a particular file in any directory.  If the file exists, it 
+contains information that causes the web server to prompt the user for 
+a name and password.
+
+This is a snippet from a typical config file for apache:
+
+#
+# AccessFileName: The name of the file to look for in each directory
+# for access control information.  See also the AllowOverride directive.
+#
+AccessFileName .htaccess
+
+#
+# The following lines prevent .htaccess and .htpasswd files from being
+# viewed by Web clients.
+#
+<Files ~ "^\.ht">
+    Order allow,deny
+    Deny from all
+</Files>
+
+The contents of a typical .htaccess file might look like this:
+
+<Files *>
+        AuthName "Boinc"
+        AuthType Basic
+        AuthUserFile /path/to/htpasswd
+        require valid-user
+</Files>
+
+The htpasswd file contains username password pairs.  The passwords are 
+encrypted.  Typically on Linux systems the htpasswd file is created 
+with the htpasswd command.  
+
+If you know how to do something similar on other platforms or have a 
+better idea, please send them to dennett@rochester.rr.com and they will 
+be included in future releases.
