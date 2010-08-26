@@ -14,35 +14,37 @@
 include_once("parse.php");
 
 class RPC_CLIENT {
-    var $socket;
+    protected $socket;
 
-    function RPC_CLIENT() {
+    public function __construct() {
        $this->socket = @socket_create(AF_INET, SOCK_STREAM, 0);
     }
 
-    function connect($address="127.0.0.1", $port="1043") {
+    public function connect($address="127.0.0.1", $port="1043") {
         return socket_connect($this->socket, $address, $port);
     }
 
-    function close() {
+    public function close() {
         return socket_close($this->socket);
     }
 
-    function send($cmd) {
+    public function send($cmd) {
         $buf = "<boinc_gui_rpc_request>\n<version>0</version>\n".$cmd."\n</boinc_gui_rpc_request>\n";
         return socket_write($this->socket, $buf, strlen($buf));
     }
 
-    function read() {
-              $data="";
-        while (($buf = @socket_read($this->socket, 4096)) !== false) {
+    public function read() {
+        $data="";
+        while ($buf = @socket_read($this->socket, 4096)) {
               $data .= $buf;
               if (preg_match("</boinc_gui_rpc_reply>", $data)) break;
         }
+		$data = preg_replace("/[\x01-\x08\x0b\x0c\x0e-\x1f\x7f]+/","",$data);
+		$data = str_replace("\0","",$data);
         return $data;
     }
 
-    function get_state() {
+    public function get_state() {
         if (!$this->socket) return false;
 
         $result = $this->send("<get_state/>");
@@ -53,7 +55,7 @@ class RPC_CLIENT {
         return $this->parse_state($data);
     }
 
-    function get_file_transfers() {
+    public function get_file_transfers() {
         if (!$this->socket) return false;
 
         $result = $this->send("<get_file_transfers/>");
@@ -108,7 +110,7 @@ class RPC_CLIENT {
     function parse_state($state) {
         $strings = explode("\n", $state);
 
-        $client_state = array("host_info"=>"", "projects"=>"", "workunits"=>"", "results"=>"");
+        $client_state = array("host_info"=>null, "projects"=>null, "workunits"=>null, "results"=>null);
         $host_info = array();
         $projects = array();
         $workunits = array();
@@ -119,7 +121,57 @@ class RPC_CLIENT {
         $panic_mode = -1;
 //        $work_fetch = -1;
 
-                $i = -1;
+		file_put_contents('state.xml', $state);
+		$xml = simplexml_load_string($state);
+		//var_dump($xml);
+
+		if( !isset($xml->client_state) ) {
+			return $client_state;
+		}
+
+		$client_state = $xml->client_state;
+		if( isset($client_state->host_info) ) {
+			$node_names = array(
+				'timezone', 'domain_name', 'ip_addr',
+				'p_ncpus', 'p_vendor', 'p_model', 'p_fpops', 'p_iops',
+				'p_membw', 'p_fpops_err', 'p_iops_err', 'p_membw_err', 'p_calculated',
+				'os_name', 'os_version',
+				'm_nbytes', 'm_cache', 'm_swap',
+				'd_total', 'd_free',
+
+			);
+			foreach( $node_names as $name ) {
+				$host_info[$name] = null;
+				if( isset($client_state->host_info->$name) ) {
+					$host_info[$name] = (string)$client_state->host_info->$name;	
+				}
+			}
+			var_dump($host_info);
+		}
+		if( $project_nodes = $client_state->xpath('./project') ) {
+			$node_names = array(
+				'resource_share',
+				'master_url', 'project_name', 'user_name', 'team_name',
+				'user_total_credit', 'host_total_credit', 'user_expavg_credit', 'host_expavg_credit',
+				'short_term_debt', 'long_term_debt', 'min_rpc_time', 'duration_correction_factor',
+			);
+			foreach( $project_nodes as $node ) {
+				$project = array('suspended_via_gui'=>false, 'frozen'=>false, 'sched_rpc_pending'=>false);
+				foreach( $node_names as $name ) {
+					$project[$name] = null;
+					if( isset($node->$name) ) {
+						$project[$name] = (string)$node->$name;	
+					}
+                    if ( isset($node->sched_rpc_pending)) $project["sched_rpc_pending"] = true;
+                    if ( isset($node->suspended_via_gui)) $project["suspended_via_gui"] = true;
+                    if ( isset($node->dont_request_more_work)) $project["frozen"] = true;
+				}
+				$projects[] = $project;
+			}
+			var_dump($projects);
+		}
+
+        $i = -1;
         while ($buf = $strings[++$i]) {
             if (match_tag($buf, "<client_state>")) continue;
             if (match_tag($buf, "</client_state>")) break;

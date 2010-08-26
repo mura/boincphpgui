@@ -20,7 +20,7 @@ function match_tag($buf, $tag) {
 // Note: this doesn't check for the end tag
 //
 function parse_int($buf, $tag, &$res) {
-    if (eregi("<".$tag.">([0-9]+)</".$tag.">", $buf, $x)) {
+    if (preg_match("|<$tag>([0-9]+)</$tag>|i", $buf, $x)) {
 		$res = $x[1];
 		return true;
 	}
@@ -30,7 +30,7 @@ function parse_int($buf, $tag, &$res) {
 // Same, for doubles
 //
 function parse_double($buf, $tag, &$res) {
-    if (eregi("<".$tag.">(-?[0-9]*.?[0-9]+)</".$tag.">", $buf, $x)) {
+    if (preg_match("|<$tag>(-?[0-9]*.?[0-9]+)</$tag>|i", $buf, $x)) {
 		$res = $x[1];
 		return true;
 	}
@@ -45,7 +45,7 @@ function parse_double($buf, $tag, &$res) {
 // Use "<tag", not "<tag>", if there might be attributes
 //
 function parse_string($buf, $tag, &$res) {
-    if (eregi("<".$tag.".*>([^<]+)</".$tag.">", $buf, $str)) {
+    if (preg_match("|<$tag.*>([^<]+)</$tag>|i", $buf, $str)) {
 		$res = $str[1];
 		return true;
 	}
