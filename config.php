@@ -2,7 +2,7 @@
 // Allow the user to change the behavior of the gui.
 
 // $reverse_messages will allow the user to specify the display order of
-// the messages in the message tab.  Setting it equal to 1 will cause 
+// the messages in the message tab.  Setting it equal to 1 will cause
 // the message to be listed with the newest message at the top and the
 // oldest at the bottom.  Setting it to 0 will do the opposite.
 
