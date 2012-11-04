@@ -5,14 +5,14 @@
    include_once("config.php");
 
    if (!$_GET["index"])
-   { 
+   {
       $index = $default_tab;
-   } 
+   }
    else
    {
       $index = $_GET["index"];
    }
-   
+
    if (!$_GET["address"])
    {
       $address = $default_address;
@@ -21,7 +21,7 @@
    {
       $address = $_GET["address"];
    }
-   
+
    if (!$_GET["refresh"])
    {
       $refresh = $default_refresh;
@@ -293,4 +293,3 @@
         ?>
   </body>
 </html>
-
